@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:file="http://www.springframework.org/schema/integration/file"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:metrics="http://www.ryantenney.com/schema/metrics"
+       xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+       xmlns:jolokia="http://www.jolokia.org/jolokia-spring/schema/config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                  http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+                  http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+                  http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
+                  http://www.jolokia.org/jolokia-spring/schema/config http://www.jolokia.org/jolokia-spring/schema/config/jolokia-config.xsd
+                  http://www.ryantenney.com/schema/metrics http://www.ryantenney.com/schema/metrics/metrics-3.0.xsd">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" id="corePlaceHolder">
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        <property name="locations">
+            <list>
+                <value>classpath:/conf.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Registry should be defined in only one context XML file -->
+    <metrics:metric-registry id="metrics" />
+
+    <!-- annotation-driven must be included in all context files -->
+    <metrics:annotation-driven metric-registry="metrics" />
+
+    <!-- (Optional) Registry should be defined in only one context XML file -->
+    <metrics:reporter type="jmx" metric-registry="metrics" />
+
+
+    <jolokia:agent lookupConfig="true" systemPropertiesMode="never">
+        <jolokia:config
+                autoStart="true"
+                host="${jolokia.host}"
+                port="${jolokia.port}"
+                user="${jolokia.user}"
+                password="${jolokia.password}"/>
+    </jolokia:agent>
+
+    <bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+        <property name="locateExistingServerIfPossible" value="true"/>
+    </bean>
+
+    <int-jmx:mbean-export default-domain="fr.jetoile.sample" server="mbeanServer"/>
+
+    <int:chain input-channel="channel">
+        <int:object-to-string-transformer/>
+        <file:outbound-channel-adapter id="fileAdapter" auto-create-directory="true"
+                                       directory="file:${out.directory}"/>
+    </int:chain>
+
+    <int:gateway id="nettyGateway" service-interface="fr.jetoile.sample.gateway.NettyGateway"
+                 default-request-channel="channel"/>
+
+    <bean id="simpleService" class="fr.jetoile.sample.service.SimpleService">
+        <property name="gateway" ref="nettyGateway"/>
+    </bean>
+
+
+    <bean id="nettyContainer" class="fr.jetoile.sample.gateway.NettyContainer">
+        <constructor-arg ref="simpleService"/>
+    </bean>
+
+    <int:message-history/>
+
+    <int:logging-channel-adapter auto-startup="true" channel="errorChannel" level="ERROR" log-full-message="true"/>
+
+    <int:logging-channel-adapter auto-startup="true" channel="channel" level="INFO" log-full-message="true"/>
+
+    <int:publish-subscribe-channel id="channel"/>
+</beans>
