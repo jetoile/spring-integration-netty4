@@ -1,4 +1,5 @@
 This is a sample application which expose a REST API throught RestEasy-Netty 4.
+
 This REST WS is exposed throught Spring Integration as a gateway
 
 Moreover this sample application show how Swagger and Jolokia can be embedded into.
