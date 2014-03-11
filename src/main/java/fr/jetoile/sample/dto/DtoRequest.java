@@ -34,9 +34,6 @@ public class DtoRequest {
     private String message;
     private DateTime time;
 
-    public DtoRequest() {
-    }
-
     public String getMessage() {
         return message;
     }

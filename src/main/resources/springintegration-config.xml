@@ -67,8 +67,6 @@
 
     <int:message-history/>
 
-    <int:logging-channel-adapter auto-startup="true" channel="errorChannel" level="ERROR" log-full-message="true"/>
-
     <int:logging-channel-adapter auto-startup="true" channel="channel" level="INFO" log-full-message="true"/>
 
     <int:publish-subscribe-channel id="channel"/>
