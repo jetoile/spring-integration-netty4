@@ -24,13 +24,12 @@
 
 package fr.jetoile.sample.gateway;
 
-import org.springframework.integration.Message;
+import fr.jetoile.sample.dto.DtoRequest;
 
 /**
  * User: khanh
  * To change this template use File | Settings | File Templates.
  */
 public interface NettyGateway {
-
-    void send(Message msg);
+    void send(DtoRequest msg);
 }

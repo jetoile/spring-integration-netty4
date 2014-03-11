@@ -30,7 +30,6 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import fr.jetoile.sample.dto.DtoRequest;
 import fr.jetoile.sample.gateway.NettyGateway;
-import org.springframework.integration.support.MessageBuilder;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -52,9 +51,6 @@ public class SimpleService {
         this.messageProducer = messageProducer;
     }
 
-    public SimpleService() {
-    }
-
     @POST
     @Path("/write")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -62,7 +58,7 @@ public class SimpleService {
     @ApiOperation(value = "write $msg", notes = "write a message")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "Internal server error")})
     public Response write(DtoRequest message) {
-        this.messageProducer.send(MessageBuilder.withPayload(message).build());
+        this.messageProducer.send(message);
         return Response.ok().build();
     }
 }
